@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no"/>
+<meta name="theme-color" content="#78350f"/>
+<meta name="mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="The Nuts"/>
+<title>The Nuts - Business Tracker</title>
+<link rel="manifest" href="manifest.json"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:'Segoe UI',sans-serif;background:#fdf8f0;min-height:100vh;max-width:430px;margin:0 auto;padding-bottom:72px}
+  :root{--brown:#78350f;--brown2:#92400e;--yellow:#fde68a;--yellowbg:#fffbeb;--green:#16a34a;--greenbg:#f0fdf4;--red:#dc2626;--redbg:#fef2f2;--purple:#7c3aed;--purplebg:#f5f3ff;--orange:#ea580c;--orangebg:#fff7ed}
+
+  /* HEADER */
+  .header{background:linear-gradient(135deg,#78350f,#92400e);padding:14px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:20;box-shadow:0 2px 12px rgba(120,53,15,.3)}
+  .header-logo{width:38px;height:38px;background:rgba(255,255,255,.15);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px}
+  .header-title{font-family:Georgia,serif;font-size:20px;color:#fff;font-weight:bold;line-height:1.2}
+  .header-sub{font-size:11px;color:#fcd34d;margin-top:1px}
+  .header-date{margin-left:auto;text-align:right;font-size:11px;color:#fde68a}
+
+  /* NAV */
+  .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:#fff;border-top:1px solid #fde68a;display:flex;z-index:20;box-shadow:0 -4px 20px rgba(120,53,15,.1)}
+  .nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;padding:8px 4px;font-size:10px;gap:3px;border:none;background:#fff;color:#9ca3af;font-weight:400;cursor:pointer;transition:all .15s}
+  .nav-btn.active{background:#fffbeb;color:#78350f;font-weight:700}
+  .nav-icon{font-size:18px}
+
+  /* CARDS */
+  .card{background:#fff;border-radius:16px;border:1.5px solid #fde68a;padding:14px}
+  .card+.card{margin-top:8px}
+
+  /* FORMS */
+  .field-label{font-size:11px;color:#6b7280;font-weight:600;margin-bottom:4px}
+  input,select{width:100%;border:1.5px solid #fde68a;border-radius:10px;padding:9px 12px;font-size:14px;background:#fffbeb;outline:none;color:#1f2937;font-family:inherit}
+  input:focus,select:focus{border-color:#78350f}
+  .field{margin-bottom:10px}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+  /* BUTTONS */
+  .btn{border:none;border-radius:12px;padding:11px 18px;font-weight:700;font-size:14px;cursor:pointer;transition:all .15s;font-family:inherit}
+  .btn-primary{background:linear-gradient(135deg,#78350f,#92400e);color:#fff;box-shadow:0 4px 12px rgba(120,53,15,.25)}
+  .btn-outline{background:#fff;color:#78350f;border:1.5px solid #fde68a}
+  .btn-block{width:100%;margin-top:2px}
+
+  /* STAT CARDS */
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+  .stat-card{border-radius:14px;padding:12px 10px;text-align:center;border:1.5px solid}
+  .stat-icon{font-size:20px;margin-bottom:4px}
+  .stat-label{font-size:10px;font-weight:600;margin-bottom:2px}
+  .stat-value{font-size:16px;font-weight:bold}
+
+  /* TYPE GRID */
+  .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .type-card{border-radius:14px;padding:10px 12px;display:flex;align-items:center;gap:10px;border:1.5px solid}
+  .type-icon{font-size:22px}
+  .type-name{font-size:10px;color:#6b7280}
+  .type-val{font-size:15px;font-weight:bold}
+
+  /* TYPE BUTTONS */
+  .type-btns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+  .type-btn{padding:7px 12px;border-radius:99px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;font-family:inherit}
+
+  /* BADGE */
+  .badge{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:600;border:1px solid;display:inline-block}
+
+  /* SECTION TITLE */
+  .section-title{font-family:Georgia,serif;font-size:15px;color:#78350f;font-weight:bold;margin-bottom:10px}
+
+  /* TOAST */
+  .toast{border-radius:12px;padding:10px 14px;font-size:13px;font-weight:600;margin-bottom:12px}
+  .toast-ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#16a34a}
+  .toast-err{background:#fef2f2;border:1px solid #fca5a5;color:#dc2626}
+
+  /* LIST ITEMS */
+  .list-item{display:flex;align-items:center;justify-content:space-between;padding:12px 14px}
+  .item-main{font-size:13px;font-weight:600;color:#1f2937}
+  .item-sub{font-size:10px;color:#9ca3af;margin-top:3px}
+  .item-amt{font-size:15px;font-weight:bold}
+  .item-sub-amt{font-size:10px;color:#9ca3af}
+
+  /* STOCK BAR */
+  .stock-bar-bg{background:#f5f5f5;border-radius:6px;height:4px;margin-top:8px;overflow:hidden}
+  .stock-bar{height:100%;border-radius:6px;transition:width .3s}
+
+  /* REPORT */
+  .period-tabs{display:flex;gap:6px;margin-bottom:16px}
+  .period-tab{flex:1;padding:8px 4px;border-radius:10px;font-size:12px;font-weight:600;cursor:pointer;border:1.5px solid;transition:all .15s;font-family:inherit}
+  .period-tab.active{background:#78350f;color:#fff;border-color:#78350f}
+  .period-tab:not(.active){background:#fff;color:#78350f;border-color:#fde68a}
+
+  .prog-row{margin-bottom:10px}
+  .prog-header{display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px}
+  .prog-label{color:#374151;font-weight:600}
+  .prog-val{font-weight:700}
+  .prog-bg{background:#f3f4f6;border-radius:99px;height:6px;overflow:hidden}
+  .prog-fill{height:100%;border-radius:99px;transition:width .4s ease}
+
+  .top-row{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .top-num{width:24px;height:24px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700}
+  .top-info{flex:1}
+  .top-name{font-size:12px;font-weight:600;color:#374151}
+  .top-bar-bg{background:#f3f4f6;border-radius:99px;height:4px;margin-top:4px;overflow:hidden}
+  .top-bar{height:100%;background:#d97706;border-radius:99px}
+  .top-right{text-align:right}
+  .top-amt{font-size:13px;font-weight:700;color:#78350f}
+  .top-qty{font-size:10px;color:#9ca3af}
+
+  /* EMPTY */
+  .empty{text-align:center;color:#9ca3af;font-size:13px;padding:24px}
+
+  /* LOGO ICON */
+  .prod-icon{width:38px;height:38px;background:#fef3c7;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+
+  /* TOTAL BANNER */
+  .total-banner{display:flex;justify-content:space-between;align-items:center;border-radius:14px;padding:12px 14px;border:1.5px solid;margin-bottom:14px}
+  .total-label{font-size:12px}
+  .total-val{font-size:18px;font-weight:bold}
+
+  .screen{display:none}
+  .screen.active{display:block}
+
+  .content{padding:16px 12px}
+
+  .low-alert{background:#fef2f2;border:1.5px solid #fecaca;border-radius:14px;padding:12px 14px;margin-bottom:16px}
+  .low-title{font-size:13px;font-weight:700;color:#dc2626;margin-bottom:6px}
+  .low-item{font-size:12px;color:#ef4444;padding:3px 0}
+
+  .calc-box{background:#f0fdf4;border-radius:10px;padding:8px 12px;margin-bottom:10px;font-size:13px;color:#16a34a;font-weight:600;display:none}
+  .calc-box.visible{display:block}
+
+  .report-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+  .report-stat{border-radius:14px;padding:12px 14px;border:1.5px solid}
+  .r-label{font-size:11px;font-weight:600;margin-bottom:4px}
+  .r-val{font-size:18px;font-weight:bold}
+
+  .form-box{background:#fff;border-radius:16px;border:1.5px solid #fde68a;padding:14px;margin-bottom:14px;display:none}
+  .form-box.open{display:block}
+  .form-title{font-size:14px;font-weight:700;color:#78350f;margin-bottom:12px}
+
+  .flex-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+
+  .delete-btn{background:#fee2e2;border:1px solid #fca5a5;color:#dc2626;border-radius:8px;padding:4px 8px;font-size:11px;cursor:pointer;font-family:inherit;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-logo">🌰</div>
+  <div>
+    <div class="header-title">The Nuts</div>
+    <div class="header-sub">Business Tracker</div>
+  </div>
+  <div class="header-date" id="headerDate"></div>
+</div>
+
+<!-- SCREENS -->
+<div class="content">
+
+  <!-- DASHBOARD -->
+  <div class="screen active" id="screen-dashboard">
+    <div class="section-title">📅 Today's Overview</div>
+    <div class="stat-grid" id="statGrid"></div>
+    <div class="section-title">👥 Sales by Customer Type</div>
+    <div class="type-grid" id="typeGrid"></div>
+    <div id="lowStockAlert"></div>
+    <div class="section-title">🕐 Recent Sales</div>
+    <div id="recentSales"></div>
+  </div>
+
+  <!-- PURCHASE -->
+  <div class="screen" id="screen-purchase">
+    <div class="flex-header">
+      <div class="section-title" style="margin:0">📦 Purchases</div>
+      <button class="btn btn-primary" style="padding:8px 14px;font-size:13px" onclick="toggleForm('purchaseForm',this)">+ Add</button>
+    </div>
+    <div class="total-banner" style="background:#fef3c7;border-color:#fde68a">
+      <div class="total-label" style="color:#92400e">Total Purchased (All Time)</div>
+      <div class="total-val" style="color:#78350f" id="totalPurchased">₹0</div>
+    </div>
+    <div id="purchaseToast"></div>
+    <div class="form-box" id="purchaseForm">
+      <div class="form-title">New Purchase Entry</div>
+      <div class="field"><div class="field-label">Product *</div>
+        <select id="pProd" onchange="fillBuyPrice()"><option value="">Select product...</option></select></div>
+      <div class="field"><div class="field-label">Supplier Name *</div>
+        <input type="text" id="pSupplier" placeholder="e.g. Ahmed Traders"/></div>
+      <div class="row">
+        <div class="field"><div class="field-label">Quantity *</div><input type="number" id="pQty" placeholder="0" oninput="updatePurchaseCalc()"/></div>
+        <div class="field"><div class="field-label">Buy Price (₹) *</div><input type="number" id="pPrice" placeholder="0" oninput="updatePurchaseCalc()"/></div>
+      </div>
+      <div class="field"><div class="field-label">Date</div><input type="date" id="pDate"/></div>
+      <div class="calc-box" id="purchaseCalc"></div>
+      <button class="btn btn-primary btn-block" onclick="savePurchase()">💾 Save Purchase</button>
+    </div>
+    <div id="purchaseList"></div>
+  </div>
+
+  <!-- SALES -->
+  <div class="screen" id="screen-sales">
+    <div class="flex-header">
+      <div class="section-title" style="margin:0">💰 Sales</div>
+      <button class="btn btn-primary" style="padding:8px 14px;font-size:13px" onclick="toggleForm('saleForm',this)">+ Add</button>
+    </div>
+    <div class="total-banner" style="background:#f0fdf4;border-color:#bbf7d0">
+      <div class="total-label" style="color:#166534">Total Revenue (All Time)</div>
+      <div class="total-val" style="color:#16a34a" id="totalRevenue">₹0</div>
+    </div>
+    <div id="saleToast"></div>
+    <div class="form-box" id="saleForm">
+      <div class="form-title">New Sale Entry</div>
+      <div class="field"><div class="field-label">Product *</div>
+        <select id="sProd" onchange="fillSellPrice()"><option value="">Select product...</option></select></div>
+      <div class="field">
+        <div class="field-label">Customer Type *</div>
+        <div class="type-btns" id="typeBtns"></div>
+      </div>
+      <div class="field"><div class="field-label">Customer Name (Optional)</div>
+        <input type="text" id="sCustName" placeholder="e.g. Rajan Bakery"/></div>
+      <div class="row">
+        <div class="field"><div class="field-label">Quantity *</div><input type="number" id="sQty" placeholder="0" oninput="updateSaleCalc()"/></div>
+        <div class="field"><div class="field-label">Sell Price (₹) *</div><input type="number" id="sPrice" placeholder="0" oninput="updateSaleCalc()"/></div>
+      </div>
+      <div class="field"><div class="field-label">Date</div><input type="date" id="sDate"/></div>
+      <div class="calc-box" id="saleCalc"></div>
+      <button class="btn btn-primary btn-block" onclick="saveSale()">💾 Save Sale</button>
+    </div>
+    <div id="salesList"></div>
+  </div>
+
+  <!-- STOCK -->
+  <div class="screen" id="screen-stock">
+    <div class="flex-header">
+      <div class="section-title" style="margin:0">📊 Stock Levels</div>
+      <button class="btn btn-primary" style="padding:8px 14px;font-size:13px" onclick="toggleForm('addProdForm',this)">+ Product</button>
+    </div>
+    <div class="total-banner" style="background:#fef3c7;border-color:#fde68a">
+      <div class="total-label" style="color:#92400e">📦 Total Stock Value</div>
+      <div class="total-val" style="color:#78350f" id="stockValue">₹0</div>
+    </div>
+    <div id="stockToast"></div>
+    <div class="form-box" id="addProdForm">
+      <div class="form-title">Add New Product</div>
+      <div class="field"><div class="field-label">Product Name *</div><input type="text" id="newProdName" placeholder="e.g. Dried Figs"/></div>
+      <div class="field"><div class="field-label">Emoji Icon</div><input type="text" id="newProdEmoji" placeholder="🌰" maxlength="2"/></div>
+      <div class="field"><div class="field-label">Unit</div>
+        <select id="newProdUnit">
+          <option value="kg">kg</option><option value="pcs">pieces</option>
+          <option value="strip">strip</option><option value="box">box</option><option value="g">grams</option>
+        </select></div>
+      <div class="row">
+        <div class="field"><div class="field-label">Buy Price (₹) *</div><input type="number" id="newBuyPrice" placeholder="0"/></div>
+        <div class="field"><div class="field-label">Sell Price (₹) *</div><input type="number" id="newSellPrice" placeholder="0"/></div>
+      </div>
+      <button class="btn btn-primary btn-block" onclick="addProduct()">✅ Add Product</button>
+    </div>
+    <div id="stockList"></div>
+  </div>
+
+  <!-- REPORT -->
+  <div class="screen" id="screen-report">
+    <div class="section-title">📈 Business Report</div>
+    <div class="period-tabs">
+      <button class="period-tab active" onclick="setPeriod('today',this)">Today</button>
+      <button class="period-tab" onclick="setPeriod('week',this)">7 Days</button>
+      <button class="period-tab" onclick="setPeriod('month',this)">Month</button>
+      <button class="period-tab" onclick="setPeriod('all',this)">All</button>
+    </div>
+    <div class="report-grid" id="reportGrid"></div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="font-size:13px;font-weight:700;color:#78350f;margin-bottom:12px">👥 Sales by Customer Type</div>
+      <div id="reportByType"></div>
+    </div>
+    <div class="card">
+      <div style="font-size:13px;font-weight:700;color:#78350f;margin-bottom:12px">🏆 Top Selling Products</div>
+      <div id="reportTopProds"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-btn active" id="nav-dashboard" onclick="goTab('dashboard')"><span class="nav-icon">🏠</span>Home</button>
+  <button class="nav-btn" id="nav-purchase" onclick="goTab('purchase')"><span class="nav-icon">📦</span>Buy</button>
+  <button class="nav-btn" id="nav-sales" onclick="goTab('sales')"><span class="nav-icon">💰</span>Sell</button>
+  <button class="nav-btn" id="nav-stock" onclick="goTab('stock')"><span class="nav-icon">📊</span>Stock</button>
+  <button class="nav-btn" id="nav-report" onclick="goTab('report')"><span class="nav-icon">📈</span>Report</button>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────
+const DEFAULT_PRODUCTS = [
+  {id:1,name:"Iran Dates",unit:"kg",buyPrice:300,sellPrice:450,emoji:"🟤"},
+  {id:2,name:"Almonds",unit:"kg",buyPrice:700,sellPrice:950,emoji:"🤍"},
+  {id:3,name:"Mix Nuts 375g",unit:"pcs",buyPrice:120,sellPrice:200,emoji:"🌰"},
+  {id:4,name:"Cashews",unit:"kg",buyPrice:800,sellPrice:1100,emoji:"🥜"},
+  {id:5,name:"Pistachios",unit:"kg",buyPrice:1200,sellPrice:1600,emoji:"💚"},
+  {id:6,name:"Walnuts",unit:"kg",buyPrice:500,sellPrice:750,emoji:"🟫"},
+  {id:7,name:"Seeds Mix",unit:"kg",buyPrice:250,sellPrice:380,emoji:"🌱"},
+  {id:8,name:"Makhana",unit:"kg",buyPrice:400,sellPrice:600,emoji:"⚪"},
+  {id:9,name:"Strip Pack ₹10",unit:"strip",buyPrice:60,sellPrice:120,emoji:"📦"},
+  {id:10,name:"Strip Pack ₹20",unit:"strip",buyPrice:120,sellPrice:240,emoji:"📦"},
+];
+
+const CTYPES = [
+  {id:"Home",label:"Home",icon:"🏠",color:"#3b82f6",bg:"#eff6ff",border:"#bfdbfe"},
+  {id:"Retailer",label:"Retailer",icon:"🏪",color:"#16a34a",bg:"#f0fdf4",border:"#bbf7d0"},
+  {id:"Cafe",label:"Cafe",icon:"☕",color:"#7c3aed",bg:"#f5f3ff",border:"#ddd6fe"},
+  {id:"Corporate",label:"Corporate",icon:"🏢",color:"#ea580c",bg:"#fff7ed",border:"#fed7aa"},
+];
+
+let products=[], purchases=[], sales=[], activeCustType="Retailer", activePeriod="today";
+
+function load(){
+  try{products=JSON.parse(localStorage.getItem("nuts_products")||"null")||DEFAULT_PRODUCTS;}catch{products=[...DEFAULT_PRODUCTS];}
+  try{purchases=JSON.parse(localStorage.getItem("nuts_purchases")||"[]");}catch{purchases=[];}
+  try{sales=JSON.parse(localStorage.getItem("nuts_sales")||"[]");}catch{sales=[];}
+}
+function save(){
+  localStorage.setItem("nuts_products",JSON.stringify(products));
+  localStorage.setItem("nuts_purchases",JSON.stringify(purchases));
+  localStorage.setItem("nuts_sales",JSON.stringify(sales));
+}
+
+// ─── UTILS ───────────────────────────────────────────
+const today=()=>new Date().toISOString().split("T")[0];
+
+function fmt(n){
+  if(n>=100000)return"₹"+(n/100000).toFixed(1)+"L";
+  if(n>=1000)return"₹"+(n/1000).toFixed(1)+"K";
+  return"₹"+Math.round(n).toLocaleString("en-IN");
+}
+function fmtFull(n){return"₹"+Math.round(n).toLocaleString("en-IN");}
+
+function getStock(){
+  const s={};
+  products.forEach(p=>s[p.id]=0);
+  purchases.forEach(p=>{s[p.productId]=(s[p.productId]||0)+Number(p.quantity);});
+  sales.forEach(s2=>{s[s2.productId]=(s[s2.productId]||0)-Number(s2.quantity);});
+  return s;
+}
+
+function badge(type){
+  const ct=CTYPES.find(c=>c.id===type)||CTYPES[0];
+  return`<span class="badge" style="background:${ct.bg};color:${ct.color};border-color:${ct.border}">${ct.icon} ${ct.label}</span>`;
+}
+
+function showToast(id,msg,isErr){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.innerHTML=`<div class="toast ${isErr?'toast-err':'toast-ok'}">${msg}</div>`;
+  setTimeout(()=>{el.innerHTML=""},3000);
+}
+
+// ─── TAB NAVIGATION ───────────────────────────────────
+function goTab(tab){
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  document.querySelectorAll(".nav-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById("screen-"+tab).classList.add("active");
+  document.getElementById("nav-"+tab).classList.add("active");
+  renderTab(tab);
+}
+
+function renderTab(tab){
+  if(tab==="dashboard")renderDashboard();
+  else if(tab==="purchase")renderPurchase();
+  else if(tab==="sales")renderSales();
+  else if(tab==="stock")renderStock();
+  else if(tab==="report")renderReport();
+}
+
+function toggleForm(id,btn){
+  const f=document.getElementById(id);
+  const open=f.classList.toggle("open");
+  btn.textContent=open?"✕ Cancel":"+ Add";
+  if(id==="purchaseForm"&&open){document.getElementById("pDate").value=today();}
+  if(id==="saleForm"&&open){document.getElementById("sDate").value=today();renderTypeBtns();}
+}
+
+// ─── DASHBOARD ───────────────────────────────────────
+function renderDashboard(){
+  const t=today();
+  const ts=sales.filter(s=>s.date===t);
+  const tp=purchases.filter(p=>p.date===t);
+  const rev=ts.reduce((s,x)=>s+x.quantity*x.sellPrice,0);
+  const cogs=ts.reduce((s,x)=>{const p=products.find(pr=>pr.id===x.productId);return s+x.quantity*(p?.buyPrice||0);},0);
+  const profit=rev-cogs;
+  const purCost=tp.reduce((s,p)=>s+p.quantity*p.buyPrice,0);
+
+  document.getElementById("statGrid").innerHTML=[
+    {label:"Revenue",val:fmt(rev),color:"#16a34a",bg:"#f0fdf4",border:"#bbf7d0",icon:"💵"},
+    {label:"Purchased",val:fmt(purCost),color:"#dc2626",bg:"#fef2f2",border:"#fecaca",icon:"📥"},
+    {label:"Profit",val:fmt(profit),color:profit>=0?"#d97706":"#dc2626",bg:"#fffbeb",border:"#fde68a",icon:"✨"},
+  ].map(c=>`<div class="stat-card" style="background:${c.bg};border-color:${c.border}">
+    <div class="stat-icon">${c.icon}</div>
+    <div class="stat-label" style="color:${c.color}">${c.label}</div>
+    <div class="stat-value" style="color:${c.color}">${c.val}</div>
+  </div>`).join("");
+
+  const byType={};
+  CTYPES.forEach(ct=>byType[ct.id]=0);
+  ts.forEach(s=>{byType[s.customerType]=(byType[s.customerType]||0)+s.quantity*s.sellPrice;});
+  document.getElementById("typeGrid").innerHTML=CTYPES.map(ct=>`
+    <div class="type-card" style="background:${ct.bg};border-color:${ct.border}">
+      <div class="type-icon">${ct.icon}</div>
+      <div><div class="type-name">${ct.label}</div>
+      <div class="type-val" style="color:${ct.color}">${fmt(byType[ct.id]||0)}</div></div>
+    </div>`).join("");
+
+  const stock=getStock();
+  const low=products.filter(p=>(stock[p.id]||0)<2);
+  document.getElementById("lowStockAlert").innerHTML=low.length?`
+    <div class="low-alert">
+      <div class="low-title">⚠️ Low Stock Alert</div>
+      ${low.map(p=>`<div class="low-item">• ${p.name}: <strong>${(stock[p.id]||0).toFixed(1)} ${p.unit}</strong> remaining</div>`).join("")}
+    </div>`:"";
+
+  const recent=[...sales].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,5);
+  document.getElementById("recentSales").innerHTML=recent.length?recent.map(s=>{
+    const prod=products.find(p=>p.id===s.productId);
+    return`<div class="card list-item" style="margin-bottom:8px">
+      <div>
+        <div class="item-main">${prod?.emoji||"🌰"} ${prod?.name||"?"}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap">
+          ${badge(s.customerType)}
+          ${s.customerName?`<span style="font-size:10px;color:#9ca3af">${s.customerName}</span>`:""}
+        </div>
+        <div class="item-sub">${s.date}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="item-amt" style="color:#16a34a">${fmtFull(s.quantity*s.sellPrice)}</div>
+        <div class="item-sub-amt">${s.quantity} ${prod?.unit||""} @ ₹${s.sellPrice}</div>
+      </div>
+    </div>`}).join(""):`<div class="card empty">No sales yet. Tap 💰 Sell to add your first sale!</div>`;
+}
+
+// ─── PURCHASE ───────────────────────────────────────
+function renderPurchase(){
+  const sel=document.getElementById("pProd");
+  sel.innerHTML=`<option value="">Select product...</option>`+products.map(p=>`<option value="${p.id}">${p.emoji} ${p.name}</option>`).join("");
+  const total=purchases.reduce((s,p)=>s+p.quantity*p.buyPrice,0);
+  document.getElementById("totalPurchased").textContent=fmt(total);
+  const recent=[...purchases].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,30);
+  document.getElementById("purchaseList").innerHTML=recent.length?recent.map(p=>{
+    const prod=products.find(pr=>pr.id===p.productId);
+    return`<div class="card list-item" style="margin-bottom:8px">
+      <div>
+        <div class="item-main">${prod?.emoji||"🌰"} ${prod?.name||"?"}</div>
+        <div style="font-size:11px;color:#6b7280;margin-top:2px">🏭 ${p.supplier}</div>
+        <div class="item-sub">${p.date}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="item-amt" style="color:#dc2626">${fmtFull(p.quantity*p.buyPrice)}</div>
+        <div class="item-sub-amt">${p.quantity} ${prod?.unit||""} @ ₹${p.buyPrice}</div>
+      </div>
+    </div>`}).join(""):`<div class="card empty">No purchases yet.</div>`;
+}
+
+function fillBuyPrice(){
+  const pid=Number(document.getElementById("pProd").value);
+  const prod=products.find(p=>p.id===pid);
+  if(prod)document.getElementById("pPrice").value=prod.buyPrice;
+  updatePurchaseCalc();
+}
+function updatePurchaseCalc(){
+  const qty=Number(document.getElementById("pQty").value);
+  const price=Number(document.getElementById("pPrice").value);
+  const box=document.getElementById("purchaseCalc");
+  if(qty&&price){box.textContent="Total Cost: "+fmtFull(qty*price);box.classList.add("visible");}
+  else box.classList.remove("visible");
+}
+function savePurchase(){
+  const productId=Number(document.getElementById("pProd").value);
+  const supplier=document.getElementById("pSupplier").value.trim();
+  const quantity=Number(document.getElementById("pQty").value);
+  const buyPrice=Number(document.getElementById("pPrice").value);
+  const date=document.getElementById("pDate").value||today();
+  if(!productId||!supplier||!quantity||!buyPrice){showToast("purchaseToast","⚠️ Fill all fields!",true);return;}
+  purchases.push({id:Date.now(),productId,supplier,quantity,buyPrice,date,createdAt:new Date().toISOString()});
+  save();
+  document.getElementById("pProd").value="";
+  document.getElementById("pSupplier").value="";
+  document.getElementById("pQty").value="";
+  document.getElementById("pPrice").value="";
+  document.getElementById("purchaseCalc").classList.remove("visible");
+  const f=document.getElementById("purchaseForm");
+  f.classList.remove("open");
+  document.querySelector('[onclick="toggleForm(\'purchaseForm\',this)"]').textContent="+ Add";
+  showToast("purchaseToast","✅ Purchase saved!",false);
+  renderPurchase();
+}
+
+// ─── SALES ───────────────────────────────────────────
+function renderSales(){
+  const sel=document.getElementById("sProd");
+  const stock=getStock();
+  sel.innerHTML=`<option value="">Select product...</option>`+products.map(p=>`<option value="${p.id}">${p.emoji} ${p.name} (Stock: ${(stock[p.id]||0).toFixed(1)} ${p.unit})</option>`).join("");
+  const total=sales.reduce((s,x)=>s+x.quantity*x.sellPrice,0);
+  document.getElementById("totalRevenue").textContent=fmt(total);
+  renderTypeBtns();
+  const recent=[...sales].sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt)).slice(0,30);
+  document.getElementById("salesList").innerHTML=recent.length?recent.map(s=>{
+    const prod=products.find(p=>p.id===s.productId);
+    return`<div class="card list-item" style="margin-bottom:8px">
+      <div>
+        <div class="item-main">${prod?.emoji||"🌰"} ${prod?.name||"?"}</div>
+        <div style="display:flex;gap:6px;margin-top:4px;align-items:center;flex-wrap:wrap">
+          ${badge(s.customerType)}
+          ${s.customerName?`<span style="font-size:10px;color:#9ca3af">${s.customerName}</span>`:""}
+        </div>
+        <div class="item-sub">${s.date}</div>
+      </div>
+      <div style="text-align:right">
+        <div class="item-amt" style="color:#16a34a">${fmtFull(s.quantity*s.sellPrice)}</div>
+        <div class="item-sub-amt">${s.quantity} ${prod?.unit||""} @ ₹${s.sellPrice}</div>
+      </div>
+    </div>`}).join(""):`<div class="card empty">No sales yet.</div>`;
+}
+
+function renderTypeBtns(){
+  document.getElementById("typeBtns").innerHTML=CTYPES.map(ct=>{
+    const active=activeCustType===ct.id;
+    return`<button class="type-btn" onclick="setCustType('${ct.id}')" style="background:${active?ct.color:ct.bg};color:${active?"#fff":ct.color};border-color:${active?ct.color:ct.border}">${ct.icon} ${ct.label}</button>`;
+  }).join("");
+}
+function setCustType(t){activeCustType=t;renderTypeBtns();}
+
+function fillSellPrice(){
+  const pid=Number(document.getElementById("sProd").value);
+  const prod=products.find(p=>p.id===pid);
+  if(prod)document.getElementById("sPrice").value=prod.sellPrice;
+  updateSaleCalc();
+}
+function updateSaleCalc(){
+  const qty=Number(document.getElementById("sQty").value);
+  const price=Number(document.getElementById("sPrice").value);
+  const box=document.getElementById("saleCalc");
+  if(qty&&price){box.textContent="Sale Total: "+fmtFull(qty*price);box.classList.add("visible");}
+  else box.classList.remove("visible");
+}
+function saveSale(){
+  const productId=Number(document.getElementById("sProd").value);
+  const quantity=Number(document.getElementById("sQty").value);
+  const sellPrice=Number(document.getElementById("sPrice").value);
+  const customerName=document.getElementById("sCustName").value.trim();
+  const date=document.getElementById("sDate").value||today();
+  if(!productId||!quantity||!sellPrice){showToast("saleToast","⚠️ Fill all required fields!",true);return;}
+  const stock=getStock();
+  if(quantity>(stock[productId]||0)){showToast("saleToast",`⚠️ Only ${(stock[productId]||0).toFixed(1)} in stock!`,true);return;}
+  sales.push({id:Date.now(),productId,customerType:activeCustType,customerName,quantity,sellPrice,date,createdAt:new Date().toISOString()});
+  save();
+  document.getElementById("sProd").value="";
+  document.getElementById("sQty").value="";
+  document.getElementById("sPrice").value="";
+  document.getElementById("sCustName").value="";
+  document.getElementById("saleCalc").classList.remove("visible");
+  const f=document.getElementById("saleForm");
+  f.classList.remove("open");
+  document.querySelector('[onclick="toggleForm(\'saleForm\',this)"]').textContent="+ Add";
+  showToast("saleToast","✅ Sale saved!",false);
+  renderSales();
+}
+
+// ─── STOCK ───────────────────────────────────────────
+function renderStock(){
+  const stock=getStock();
+  const totalVal=products.reduce((s,p)=>s+(stock[p.id]||0)*p.buyPrice,0);
+  document.getElementById("stockValue").textContent=fmt(totalVal);
+  document.getElementById("stockList").innerHTML=products.map(p=>{
+    const qty=stock[p.id]||0;
+    const isLow=qty<2;
+    const margin=((p.sellPrice-p.buyPrice)/p.sellPrice*100).toFixed(0);
+    const barW=Math.min(qty*10,100);
+    return`<div class="card" style="margin-bottom:8px;border-color:${isLow?"#fecaca":"#fde68a"};background:${isLow?"#fff5f5":"#fff"}">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div class="prod-icon">${p.emoji}</div>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#1f2937">${p.name}</div>
+            <div style="font-size:10px;color:#6b7280;margin-top:2px">Buy ₹${p.buyPrice} · Sell ₹${p.sellPrice} · Margin ${margin}%</div>
+          </div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:16px;font-weight:bold;color:${isLow?"#dc2626":"#78350f"}">${qty.toFixed(1)}</div>
+          <div style="font-size:10px;color:#9ca3af">${p.unit}</div>
+          ${isLow?`<div style="font-size:9px;color:#dc2626;font-weight:700">⚠️ LOW</div>`:""}
+        </div>
+      </div>
+      <div class="stock-bar-bg"><div class="stock-bar" style="width:${barW}%;background:${isLow?"#ef4444":"#d97706"}"></div></div>
+    </div>`;
+  }).join("");
+}
+
+function addProduct(){
+  const name=document.getElementById("newProdName").value.trim();
+  const emoji=document.getElementById("newProdEmoji").value.trim()||"🌰";
+  const unit=document.getElementById("newProdUnit").value;
+  const buyPrice=Number(document.getElementById("newBuyPrice").value);
+  const sellPrice=Number(document.getElementById("newSellPrice").value);
+  if(!name||!buyPrice||!sellPrice){showToast("stockToast","⚠️ Fill all fields!",true);return;}
+  products.push({id:Date.now(),name,emoji,unit,buyPrice,sellPrice});
+  save();
+  document.getElementById("newProdName").value="";
+  document.getElementById("newProdEmoji").value="";
+  document.getElementById("newBuyPrice").value="";
+  document.getElementById("newSellPrice").value="";
+  const f=document.getElementById("addProdForm");
+  f.classList.remove("open");
+  document.querySelector('[onclick="toggleForm(\'addProdForm\',this)"]').textContent="+ Product";
+  showToast("stockToast","✅ Product added!",false);
+  renderStock();
+}
+
+// ─── REPORT ───────────────────────────────────────────
+function setPeriod(p,btn){
+  activePeriod=p;
+  document.querySelectorAll(".period-tab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  renderReport();
+}
+
+function getRange(){
+  const now=new Date(),t=today();
+  if(activePeriod==="today")return{start:t,end:t};
+  if(activePeriod==="week"){const d=new Date(now);d.setDate(d.getDate()-7);return{start:d.toISOString().split("T")[0],end:t};}
+  if(activePeriod==="month")return{start:`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,"0")}-01`,end:t};
+  return{start:"2000-01-01",end:t};
+}
+
+function renderReport(){
+  const{start,end}=getRange();
+  const fS=sales.filter(s=>s.date>=start&&s.date<=end);
+  const fP=purchases.filter(p=>p.date>=start&&p.date<=end);
+  const rev=fS.reduce((s,x)=>s+x.quantity*x.sellPrice,0);
+  const cogs=fS.reduce((s,x)=>{const p=products.find(pr=>pr.id===x.productId);return s+x.quantity*(p?.buyPrice||0);},0);
+  const profit=rev-cogs;
+  const purchased=fP.reduce((s,p)=>s+p.quantity*p.buyPrice,0);
+  const margin=rev>0?((profit/rev)*100).toFixed(1):0;
+
+  document.getElementById("reportGrid").innerHTML=[
+    {label:"💵 Revenue",val:fmt(rev),color:"#16a34a",bg:"#f0fdf4",border:"#bbf7d0"},
+    {label:"✨ Net Profit",val:fmt(profit),color:profit>=0?"#d97706":"#dc2626",bg:"#fffbeb",border:"#fde68a"},
+    {label:"📦 Stock Bought",val:fmt(purchased),color:"#dc2626",bg:"#fef2f2",border:"#fecaca"},
+    {label:"📊 Profit Margin",val:`${margin}%`,color:"#7c3aed",bg:"#f5f3ff",border:"#ddd6fe"},
+  ].map(c=>`<div class="report-stat" style="background:${c.bg};border-color:${c.border}">
+    <div class="r-label" style="color:${c.color}">${c.label}</div>
+    <div class="r-val" style="color:${c.color}">${c.val}</div>
+  </div>`).join("");
+
+  const byType={};
+  CTYPES.forEach(ct=>byType[ct.id]={revenue:0,count:0});
+  fS.forEach(s=>{byType[s.customerType].revenue+=s.quantity*s.sellPrice;byType[s.customerType].count+=1;});
+  document.getElementById("reportByType").innerHTML=CTYPES.map(ct=>{
+    const pct=rev>0?(byType[ct.id].revenue/rev*100):0;
+    return`<div class="prog-row">
+      <div class="prog-header">
+        <span class="prog-label">${ct.icon} ${ct.label} <span style="color:#9ca3af;font-weight:400">(${byType[ct.id].count} orders)</span></span>
+        <span class="prog-val" style="color:${ct.color}">${fmt(byType[ct.id].revenue)} · ${pct.toFixed(0)}%</span>
+      </div>
+      <div class="prog-bg"><div class="prog-fill" style="background:${ct.color};width:${pct}%"></div></div>
+    </div>`;
+  }).join("");
+
+  const byProd={};
+  fS.forEach(s=>{if(!byProd[s.productId])byProd[s.productId]={revenue:0,qty:0};byProd[s.productId].revenue+=s.quantity*s.sellPrice;byProd[s.productId].qty+=s.quantity;});
+  const topProds=Object.entries(byProd).sort((a,b)=>b[1].revenue-a[1].revenue).slice(0,5);
+  const colors=[["#fef3c7","#d97706"],["#f0fdf4","#16a34a"],["#f5f3ff","#7c3aed"],["#fef2f2","#dc2626"],["#eff6ff","#2563eb"]];
+  document.getElementById("reportTopProds").innerHTML=topProds.length?topProds.map(([pid,data],i)=>{
+    const prod=products.find(p=>p.id===Number(pid));
+    const pct=rev>0?(data.revenue/rev*100):0;
+    return`<div class="top-row">
+      <div class="top-num" style="background:${colors[i][0]};color:${colors[i][1]}">${i+1}</div>
+      <div class="top-info">
+        <div class="top-name">${prod?.emoji||"🌰"} ${prod?.name||"?"}</div>
+        <div class="top-bar-bg"><div class="top-bar" style="width:${pct}%"></div></div>
+      </div>
+      <div class="top-right">
+        <div class="top-amt">${fmt(data.revenue)}</div>
+        <div class="top-qty">${data.qty.toFixed(1)} sold</div>
+      </div>
+    </div>`;
+  }).join(""):`<div class="empty">No sales in this period</div>`;
+}
+
+// ─── INIT ───────────────────────────────────────────
+load();
+document.getElementById("headerDate").textContent=new Date().toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"});
+renderDashboard();
+</script>
+</body>
+</html>

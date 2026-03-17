@@ -1,0 +1,17 @@
+{
+  "name": "The Nuts - Business Tracker",
+  "short_name": "The Nuts",
+  "description": "Business tracker for The Nuts dry fruits shop",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdf8f0",
+  "theme_color": "#78350f",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='32' fill='%2378350f'/><text y='130' x='96' font-size='110' text-anchor='middle'>🌰</text></svg>",
+      "sizes": "192x192",
+      "type": "image/svg+xml"
+    }
+  ]
+}
